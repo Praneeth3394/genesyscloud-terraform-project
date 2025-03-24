@@ -1,0 +1,42 @@
+stages:          # Define the stages of the pipeline
+  - validate
+  - plan
+  - apply
+
+variables:
+  TF_VAR_client_id: "a72bff38-90c1-4011-972e-c317d8b1b27d"
+  TF_VAR_client_secret: "DqeFLBnadWLHcW2a7rl1j8XZw9sBYUMV1ao2dkF_n50"
+  TF_VAR_environment: "Dev"
+  TF_VAR_region: "eu-central-1"
+
+validate:
+  stage: validate
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform validate -no-color
+
+plan:
+  stage: plan
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform plan -no-color -input=false
+  artifacts:
+    paths:
+      - terraform.tfplan
+
+apply:
+  stage: apply
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform apply -no-color -auto-approve -input=false
+  dependencies:
+    - plan
+only:
+  refs:
+    - main
