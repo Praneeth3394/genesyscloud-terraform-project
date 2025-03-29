@@ -4,7 +4,7 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Terraform.gitlab-ci.yml
 
-stages:          # Define the stages of the pipeline
+stages:         # Define the stages of the pipeline
   - validate
   - plan
   - apply
@@ -17,7 +17,7 @@ variables:
 
 validate:
   stage: validate
-  image:
+  image: 
     name: hashicorp/terraform:latest
   script:
     - terraform init
@@ -46,6 +46,3 @@ apply:
 only:
   refs:
     - main
-  environment:
-    name: $TF_STATE_NAME
-    action: start
