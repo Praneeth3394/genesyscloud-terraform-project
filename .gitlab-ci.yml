@@ -4,35 +4,48 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Terraform.gitlab-ci.yml
 
-include:
-  - template: Terraform/Base.gitlab-ci.yml  # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Terraform/Base.gitlab-ci.yml
-  - template: Jobs/SAST-IaC.gitlab-ci.yml   # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Jobs/SAST-IaC.gitlab-ci.yml
-
-stages:
+stages:          # Define the stages of the pipeline
   - validate
-  - test
-  - build
-  - deploy
-  - cleanup
+  - plan
+  - apply
 
-fmt:
-  extends: .terraform:fmt
-  needs: []
+variables:
+  TF_VAR_client_id: "a72bff38-90c1-4011-972e-c317d8b1b27d"
+  TF_VAR_client_secret: "DqeFLBnadWLHcW2a7rl1j8XZw9sBYUMV1ao2dkF_n50"
+  TF_VAR_environment: "Dev"
+  TF_VAR_region: "eu-central-1"
 
 validate:
-  extends: .terraform:validate
-  needs: []
+  stage: validate
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform validate -no-color
 
-build:
-  extends: .terraform:build
-  environment:
-    name: $TF_STATE_NAME
-    action: prepare
+plan:
+  stage: plan
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform plan -no-color -input=false
+  artifacts:
+    paths:
+      - terraform.tfplan
 
-deploy:
-  extends: .terraform:deploy
+apply:
+  stage: apply
+  image:
+    name: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform apply -no-color -auto-approve -input=false
   dependencies:
-    - build
+    - plan
+only:
+  refs:
+    - main
   environment:
     name: $TF_STATE_NAME
     action: start
